@@ -52,6 +52,7 @@ int main( int argc, char** argv ){
 	commandLine cmdLine(argc, argv);
 
   cv::Mat camera_frame;
+  cv::Mat camera_frame_BGR;
 	
 	/*
 	 * attach signal handler
@@ -111,6 +112,8 @@ int main( int argc, char** argv ){
 			printf("camera-viewer:  failed to capture RGBA image\n");
 
     camera_frame = cv::Mat((int)camera->GetWidth(), (int)camera->GetHeight(), CV_32F, imgRGBA);
+
+    cv::cvtColor(camera_frame, camera_frame_BGR, RGBA2BGR);
 
     printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
