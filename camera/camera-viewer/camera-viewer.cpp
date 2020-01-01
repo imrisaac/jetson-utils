@@ -110,7 +110,7 @@ int main( int argc, char** argv ){
 		if( !camera->CaptureRGBA(&imgRGBA, 1000) )
 			printf("camera-viewer:  failed to capture RGBA image\n");
 
-    camera_frame = cv::Mat(2, 4, CV_32F, imgRGBA);
+    camera_frame = cv::Mat((int)camera->width(), (int)camera->height(), CV_32F, imgRGBA);
 
     printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
