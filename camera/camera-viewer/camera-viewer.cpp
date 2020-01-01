@@ -114,7 +114,7 @@ int main( int argc, char** argv ){
     camera_frame = cv::Mat((int)camera->GetWidth(), (int)camera->GetHeight(), CV_32F, imgRGBA);
 
     cv::Mat Temp;
-    camera_frame.convertTo(Temp, CV_8U);
+    camera_frame.convertTo(Temp, CV_8UC3);
 
     cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
 
