@@ -22,6 +22,7 @@
 
 #include "gstCamera.h"
 #include "glDisplay.h"
+#include "commandLine.h"
 
 #include <opencv2/core/utility.hpp>
 #include "opencv2/video/tracking.hpp"
