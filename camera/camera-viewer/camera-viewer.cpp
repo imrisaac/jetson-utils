@@ -116,7 +116,7 @@ int main( int argc, char** argv ){
     cv::Mat Temp;
     camera_frame.convertTo(Temp, CV_8UC3);
 
-    cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
+    //cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
 
     printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
