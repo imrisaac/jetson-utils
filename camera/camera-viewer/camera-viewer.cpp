@@ -99,6 +99,9 @@ int main( int argc, char** argv ){
 	}
 	
 	printf("camera-viewer:  camera open for streaming\n");
+
+  int imgWidth = camera->GetWidth();
+  int imgHeight = camera->GetHeight();
 	
 	/*
 	 * processing loop
@@ -109,7 +112,7 @@ int main( int argc, char** argv ){
     void* imgCPU  = NULL;
     void* imgCUDA = NULL;
     void* imgRGBA = NULL;
-		
+
     if( !camera->Capture(&imgCPU, &imgCUDA, 2000) ){
       printf("camera-viewer:  failed to capture RGBA image\n");
 	  }else{
@@ -119,17 +122,17 @@ int main( int argc, char** argv ){
       }
 
       //camera_frame = cv::Mat::zeros((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3);
-      camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3, (unsigned char *)imgRGBA).clone();
+      camera_frame = cv::Mat(imgHeight, imgWidth, CV_8UC3, (void *)imgRGBA).clone();
       //printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
       // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
       // camera_frame.convertTo(Temp, CV_8UC4);
 
-      //cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_BGRA2BGR);
-        if(camera_frame.cols != 0 && camera_frame.rows != 0){
-          cv::imshow("Converted", camera_frame);
-          cv::waitKey(1);
-        }
+      //cv::cvtColor(camera_frame, camera_frame_BGR, cv::COLOR_RGBA2BGR);
+      if(camera_frame.cols != 0 && camera_frame.rows != 0){
+        cv::imshow("Converted", camera_frame);
+        cv::waitKey(35);
+      }
 
 
       // update display
@@ -154,7 +157,6 @@ int main( int argc, char** argv ){
     }
 	}
 	
-
 	/*
 	 * destroy resources
 	 */
