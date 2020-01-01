@@ -48,9 +48,10 @@ void sig_handler(int signo)
 }
 
 
-int main( int argc, char** argv )
-{
+int main( int argc, char** argv ){
 	commandLine cmdLine(argc, argv);
+
+  cv:Mat camera_frame;
 	
 	/*
 	 * attach signal handler
