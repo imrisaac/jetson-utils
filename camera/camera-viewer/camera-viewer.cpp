@@ -118,7 +118,8 @@ int main( int argc, char** argv ){
         printf("failed to convert from NV12 to BGRA");
       }
 
-      camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3, imgRGBA);
+      //camera_frame = cv::Mat::zeros((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3);
+      camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3, (unsigned char *)imgRGBA).clone();
       //printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
       // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
