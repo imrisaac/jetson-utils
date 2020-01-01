@@ -53,6 +53,7 @@ int main( int argc, char** argv ){
 
   cv::Mat camera_frame;
   cv::Mat camera_frame_BGR;
+  cv::Mat Temp;
 	
 	/*
 	 * attach signal handler
@@ -112,7 +113,7 @@ int main( int argc, char** argv ){
 
     camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_32FC4, imgRGBA);
 
-    cv::Mat Temp;
+    // This is the most time consuming step.
     camera_frame.convertTo(Temp, CV_8UC4);
 
     cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
@@ -124,8 +125,8 @@ int main( int argc, char** argv ){
 		{
 			display->RenderOnce((float*)imgRGBA, camera->GetWidth(), camera->GetHeight());
 			
-			cv::imshow("Converted",camera_frame_BGR);
-			cv::waitKey(33);
+			//cv::imshow("Converted",camera_frame_BGR);
+			//cv::waitKey(33);
 
 			// update status bar
 			char str[256];
