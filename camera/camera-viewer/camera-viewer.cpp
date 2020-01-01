@@ -107,15 +107,15 @@ int main( int argc, char** argv ){
 		// capture latest image
 		float* imgRGBA = NULL;
 		
-		if( !camera->CaptureRGBA(&imgRGBA, 2000) )
+		if( !camera->CaptureRGBA(&imgRGBA, 2000, true) )
 			printf("camera-viewer:  failed to capture RGBA image\n");
 
-    camera_frame = cv::Mat((int)camera->GetWidth(), (int)camera->GetHeight(), CV_32F, imgRGBA);
+    camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_32FC4, imgRGBA);
 
     cv::Mat Temp;
-    //camera_frame.convertTo(Temp, CV_8UC3);
+    camera_frame.convertTo(Temp, CV_8UC4);
 
-    //cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
+    cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
 
     printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
@@ -123,6 +123,9 @@ int main( int argc, char** argv ){
 		if( display != NULL )
 		{
 			display->RenderOnce((float*)imgRGBA, camera->GetWidth(), camera->GetHeight());
+			
+			cv::imshow("Converted",camera_frame_BGR);
+			cv::waitKey(33);
 
 			// update status bar
 			char str[256];
