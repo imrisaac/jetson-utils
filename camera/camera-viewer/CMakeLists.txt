@@ -2,6 +2,8 @@
 file(GLOB gstCameraSources *.cpp)
 file(GLOB gstCameraIncludes *.h )
 
+find_package(OpenCV REQUIRED)
+
 add_executable(camera-viewer ${gstCameraSources})
 target_link_libraries(camera-viewer jetson-utils)
 
