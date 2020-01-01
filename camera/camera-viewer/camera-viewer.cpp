@@ -110,7 +110,9 @@ int main( int argc, char** argv ){
 		if( !camera->CaptureRGBA(&imgRGBA, 1000) )
 			printf("camera-viewer:  failed to capture RGBA image\n");
 
-		// update display
+    camera_frame = cv::Mat(2, 4, CV_32F, imgRGBA);
+
+    // update display
 		if( display != NULL )
 		{
 			display->RenderOnce((float*)imgRGBA, camera->GetWidth(), camera->GetHeight());
