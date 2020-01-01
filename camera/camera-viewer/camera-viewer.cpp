@@ -112,6 +112,8 @@ int main( int argc, char** argv ){
 
     camera_frame = cv::Mat(2, 4, CV_32F, imgRGBA);
 
+    printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
+
     // update display
 		if( display != NULL )
 		{
