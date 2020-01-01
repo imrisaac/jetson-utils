@@ -64,8 +64,8 @@ int main( int argc, char** argv ){
 	/*
 	 * create the camera device
 	 */
-	gstCamera* camera = gstCamera::Create(cmdLine.GetInt("width", gstCamera::DefaultWidth),
-								   cmdLine.GetInt("height", gstCamera::DefaultHeight),
+	gstCamera* camera = gstCamera::Create(1920,
+								   1080,
 								   cmdLine.GetString("camera"));
 
 	if( !camera )
@@ -102,27 +102,29 @@ int main( int argc, char** argv ){
 
   int imgWidth = camera->GetWidth();
   int imgHeight = camera->GetHeight();
-	
+	void* imgCPU  = NULL;
+  void* imgCUDA = NULL;
+  void* imgBGR = NULL;
 	/*
 	 * processing loop
 	 */
 	while( !signal_recieved )
 	{
 
-    void* imgCPU  = NULL;
-    void* imgCUDA = NULL;
-    void* imgRGBA = NULL;
+
 
     if( !camera->Capture(&imgCPU, &imgCUDA, 2000) ){
       printf("camera-viewer:  failed to capture RGBA image\n");
 	  }else{
 
-      if( !camera->ConvertBGR8(imgCUDA, &imgRGBA, true) ){
+      if( !camera->ConvertBGR8(imgCUDA, &imgBGR, true) ){
         printf("failed to convert from NV12 to BGRA");
       }
 
+      cudaDeviceSynchronize();
+
       //camera_frame = cv::Mat::zeros((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3);
-      camera_frame = cv::Mat(imgHeight, imgWidth, CV_8UC3, (void *)imgRGBA).clone();
+      camera_frame = cv::Mat(imgHeight, imgWidth, CV_8UC3, imgBGR).clone();
       //printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
       // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
@@ -131,7 +133,7 @@ int main( int argc, char** argv ){
       //cv::cvtColor(camera_frame, camera_frame_BGR, cv::COLOR_RGBA2BGR);
       if(camera_frame.cols != 0 && camera_frame.rows != 0){
         cv::imshow("Converted", camera_frame);
-        cv::waitKey(35);
+        cv::waitKey(1);
       }
 
 

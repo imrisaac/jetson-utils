@@ -353,12 +353,11 @@ bool gstCamera::ConvertBGR8( void* input, void** output, bool zeroCopy )
       return false;
     }
   }else{
-    // USB webcam is RGB
-    // if( CUDA_FAILED(cudaRGB8ToBGR8((uchar3*)input, (uchar3*)mBGR8[mLatestBGR8], mWidth, mHeight)) ){
-    //   return false;
-    // }
-    // memcpy((uchar3*)(mBGR8[mLatestBGR8]),(uchar3*)input,mWidth*mHeight*sizeof(uchar3));
-
+    //USB webcam is RGB
+    if( CUDA_FAILED(cudaRGB8ToBGR8((uchar3*)input, (uchar3*)mBGR8[mLatestBGR8], mWidth, mHeight)) ){
+      return false;
+    }
+    memcpy((uchar3*)(mBGR8[mLatestBGR8]),(uchar3*)input,mWidth*mHeight*sizeof(uchar3));
   }
 
   *output     = mBGR8[mLatestBGR8];
