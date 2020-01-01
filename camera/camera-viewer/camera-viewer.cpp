@@ -108,12 +108,14 @@ int main( int argc, char** argv ){
 		// capture latest image
 		float* imgRGBA = NULL;
 		
-		if( !camera->CaptureRGBA(&imgRGBA, 2000, true) )
+    // Capture RGBA gives us 4 channel 32bit float pixels
+		if( !camera->CaptureRGBA(&imgRGBA, 2000, true) ){
 			printf("camera-viewer:  failed to capture RGBA image\n");
+    }
 
     camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_32FC4, imgRGBA);
 
-    // This is the most time consuming step.
+    // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
     camera_frame.convertTo(Temp, CV_8UC4);
 
     cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
