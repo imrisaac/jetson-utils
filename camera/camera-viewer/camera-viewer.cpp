@@ -110,48 +110,47 @@ int main( int argc, char** argv ){
     void* imgCUDA = NULL;
     void* imgRGBA = NULL;
 		
-    if( !camera->Capture(&imgCPU, &imgCUDA, 1000) ){
+    if( !camera->Capture(&imgCPU, &imgCUDA, 2000) ){
       printf("camera-viewer:  failed to capture RGBA image\n");
-		  return false;
-	  }
+	  }else{
 
-    if( !camera->ConvertBGR8(imgCUDA, &imgRGBA, true) ){
-      printf("failed to convert from NV12 to BGRA");
-      return false;
-    }
-
-    camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3, imgRGBA);
-    //printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
-
-    // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
-    // camera_frame.convertTo(Temp, CV_8UC4);
-
-    //cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_BGRA2BGR);
-      if(camera_frame.cols != 0 && camera_frame.rows != 0){
-			  cv::imshow("Converted", camera_frame);
-			  cv::waitKey(1);
+      if( !camera->ConvertBGR8(imgCUDA, &imgRGBA, true) ){
+        printf("failed to convert from NV12 to BGRA");
       }
 
+      camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3, imgRGBA);
+      //printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
-    // update display
-		// if( display != NULL )
-		// {
-		// 	//display->RenderOnce(imgRGBA, camera->GetWidth(), camera->GetHeight());
-			
-    //   if(camera_frame.cols != 0 && camera_frame.rows != 0){
-		// 	  cv::imshow("Converted", camera_frame);
-		// 	  cv::waitKey(33);
-    //   }
+      // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
+      // camera_frame.convertTo(Temp, CV_8UC4);
 
-		// 	// update status bar
-		// 	char str[256];
-		// 	sprintf(str, "Camera Viewer (%ux%u) | %.0f FPS", camera->GetWidth(), camera->GetHeight(), display->GetFPS());
-		// 	display->SetTitle(str);	
+      //cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_BGRA2BGR);
+        if(camera_frame.cols != 0 && camera_frame.rows != 0){
+          cv::imshow("Converted", camera_frame);
+          cv::waitKey(1);
+        }
 
-		// 	// check if the user quit
-		// 	if( display->IsClosed() )
-		// 		signal_recieved = true;
-		// }
+
+      // update display
+      // if( display != NULL )
+      // {
+      // 	//display->RenderOnce(imgRGBA, camera->GetWidth(), camera->GetHeight());
+        
+      //   if(camera_frame.cols != 0 && camera_frame.rows != 0){
+      // 	  cv::imshow("Converted", camera_frame);
+      // 	  cv::waitKey(33);
+      //   }
+
+      // 	// update status bar
+      // 	char str[256];
+      // 	sprintf(str, "Camera Viewer (%ux%u) | %.0f FPS", camera->GetWidth(), camera->GetHeight(), display->GetFPS());
+      // 	display->SetTitle(str);	
+
+      // 	// check if the user quit
+      // 	if( display->IsClosed() )
+      // 		signal_recieved = true;
+      // }
+    }
 	}
 	
 
