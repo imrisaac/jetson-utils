@@ -230,7 +230,7 @@ public:
 
   // Takes in captured YUV-NV12 CUDA image, converts to uint8 BGR (with pixel intensity 0-255)
 	// Set zeroCopy to true if you need to access ConvertBGR8 from CPU, otherwise it will be CUDA only.
-	bool ConvertBGR8( void* input, void** output, bool zeroCopy=false );	
+	bool ConvertBGR8( void* input, float** output, bool zeroCopy=false );	
 	
 	/**
 	 * Return the width of the camera.

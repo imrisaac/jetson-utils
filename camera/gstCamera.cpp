@@ -293,7 +293,7 @@ bool gstCamera::ConvertRGBA( void* input, float** output, bool zeroCopy )
 	return true;
 }
 
-bool gstCamera::ConvertBGR8( void* input, void** output, bool zeroCopy )
+bool gstCamera::ConvertBGR8( void* input, float** output, bool zeroCopy )
 {
   if( !input || !output )
           return false;
@@ -349,7 +349,8 @@ bool gstCamera::ConvertBGR8( void* input, void** output, bool zeroCopy )
 
   if( csiCamera() ){
     // onboard camera is NV12
-    if( CUDA_FAILED(cudaNV12ToBGR8((uint8_t*)input, (uchar3*)mBGR8[mLatestBGR8], mWidth, mHeight)) ){
+    //if( CUDA_FAILED(cudaNV12ToBGR8((uint8_t*)input, (uchar3*)mBGR8[mLatestBGR8], mWidth, mHeight)) ){
+    if( CUDA_FAILED(cudaRGBA32ToBGR8((float4 *)input, (uchar3*)mBGR8[mLatestBGR8], mWidth, mHeight)) ){
       return false;
     }
   }else{
@@ -360,10 +361,12 @@ bool gstCamera::ConvertBGR8( void* input, void** output, bool zeroCopy )
     memcpy((uchar3*)(mBGR8[mLatestBGR8]),(uchar3*)input,mWidth*mHeight*sizeof(uchar3));
   }
 
-  *output     = mBGR8[mLatestBGR8];
+  *output     = (float*)mBGR8[mLatestBGR8];
   mLatestBGR8 = (mLatestBGR8 + 1) % NUM_RINGBUFFERS;
   return true;
 }
+
+
 
 
 #define release_return { gst_sample_unref(gstSample); return; }
@@ -499,13 +502,25 @@ bool gstCamera::buildLaunchStr( gstCameraSrc src )
 		const int flipMethod = 2;
 	#endif	
 
-		if( src == GST_SOURCE_NVCAMERA )
+		if( src == GST_SOURCE_NVCAMERA ){
 			ss << "nvcamerasrc fpsRange=\"30.0 30.0\" ! video/x-raw(memory:NVMM), width=(int)" << mWidth << ", height=(int)" << mHeight << ", format=(string)NV12 ! nvvidconv flip-method=" << flipMethod << " ! "; //'video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080, format=(string)I420, framerate=(fraction)30/1' ! ";
-		else if( src == GST_SOURCE_NVARGUS )
-			ss << "nvarguscamerasrc sensor-id=" << mSensorCSI << " ! video/x-raw(memory:NVMM), width=(int)" << mWidth << ", height=(int)" << mHeight << ", framerate=30/1, format=(string)NV12 ! nvvidconv flip-method=" << flipMethod << " ! ";
-		
-		ss << "video/x-raw ! appsink name=mysink";
-	}
+    }else if( src == GST_SOURCE_NVARGUS ){
+      ss << "nvarguscamerasrc "
+              "sensor-id=" << mSensorCSI << " "
+              "maxperf=true ! "
+            "video/x-raw(memory:NVMM), "
+              "width=(int)" << mWidth << ", "
+              "height=(int)" << mHeight << ", "
+              "framerate=60/1, "
+              "format=(string)NV12 ! "
+            "nvvidconv "
+              "flip-method=" << flipMethod << " ! "
+            "video/x-raw, "
+              "format=(string)RGBA ! ";
+    }
+
+    ss << "appsink name=mysink";
+  }
 	else
 	{
 		ss << "v4l2src device=" << mCameraStr << " ! ";

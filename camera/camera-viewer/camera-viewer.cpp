@@ -64,9 +64,9 @@ int main( int argc, char** argv ){
 	/*
 	 * create the camera device
 	 */
-	gstCamera* camera = gstCamera::Create(1920,
-								   1080,
-								   cmdLine.GetString("camera"));
+	gstCamera* camera = gstCamera::Create(2592,
+                                        1944,
+                                        cmdLine.GetString("camera"));
 
 	if( !camera )
 	{
@@ -133,13 +133,13 @@ int main( int argc, char** argv ){
 
     void* imgCPU  = NULL;
     void* imgCUDA = NULL;
-    void* imgBGR = NULL;
+    float* imgBGR = NULL;
 
     if( !camera->Capture(&imgCPU, &imgCUDA, 100) ){
       printf("camera-viewer:  failed to capture RGBA image\n");
 	  }else{
 
-      if( !camera->ConvertBGR8(imgCPU, &imgBGR, true) ){
+      if( !camera->make(imgCUDA, &imgBGR, true) ){
         printf("failed to convert from NV12 to BGRA");
       }
 
