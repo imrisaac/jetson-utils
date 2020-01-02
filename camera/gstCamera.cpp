@@ -280,6 +280,7 @@ bool gstCamera::ConvertRGBA( void* input, float** output, bool zeroCopy )
 		// MIPI CSI camera is NV12
 		if( CUDA_FAILED(cudaNV12ToRGBA32((uint8_t*)input, (float4*)mRGBA[mLatestRGBA], mWidth, mHeight)) )
 			return false;
+
 	}
 	else
 	{
@@ -288,27 +289,28 @@ bool gstCamera::ConvertRGBA( void* input, float** output, bool zeroCopy )
 			return false;
 	}
 	
-	*output     = (float*)mRGBA[mLatestRGBA];
+	*output     = (float*)input;
 	mLatestRGBA = (mLatestRGBA + 1) % NUM_RINGBUFFERS;
 	return true;
 }
 
-bool gstCamera::ConvertBGR8( void* input, float** output, bool zeroCopy )
+bool gstCamera::ConvertBGR8( float* input, void** output, bool zeroCopy )
 {
   if( !input || !output )
-          return false;
+    return false;
+
   if( mBGR8[0] != NULL && zeroCopy != mBGR8ZeroCopy )
   {
     for( uint32_t n=0; n < NUM_RINGBUFFERS; n++ )
     {
       if( mBGR8[n] != NULL )
       {
-              if( mBGR8ZeroCopy )
-                      CUDA(cudaFreeHost(mBGR8[n]));
-              else
-                      CUDA(cudaFree(mBGR8[n]));
+        if( mBGR8ZeroCopy )
+          CUDA(cudaFreeHost(mBGR8[n]));
+        else
+          CUDA(cudaFree(mBGR8[n]));
 
-              mBGR8[n] = NULL;
+        mBGR8[n] = NULL;
       }
     }
 
@@ -350,6 +352,7 @@ bool gstCamera::ConvertBGR8( void* input, float** output, bool zeroCopy )
   if( csiCamera() ){
     // onboard camera is NV12
     //if( CUDA_FAILED(cudaNV12ToBGR8((uint8_t*)input, (uchar3*)mBGR8[mLatestBGR8], mWidth, mHeight)) ){
+    printf("converting RGBA to BGR\n");
     if( CUDA_FAILED(cudaRGBA32ToBGR8((float4 *)input, (uchar3*)mBGR8[mLatestBGR8], mWidth, mHeight)) ){
       return false;
     }
@@ -365,9 +368,6 @@ bool gstCamera::ConvertBGR8( void* input, float** output, bool zeroCopy )
   mLatestBGR8 = (mLatestBGR8 + 1) % NUM_RINGBUFFERS;
   return true;
 }
-
-
-
 
 #define release_return { gst_sample_unref(gstSample); return; }
 

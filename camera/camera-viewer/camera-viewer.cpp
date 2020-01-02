@@ -83,10 +83,10 @@ int main( int argc, char** argv ){
 	/*
 	 * create openGL window
 	 */
-	// glDisplay* display = glDisplay::Create();
+	glDisplay* display = glDisplay::Create();
 	
-	// if( !display )
-	// 	printf("camera-viewer:  failed to create openGL display\n");
+	if( !display )
+		printf("camera-viewer:  failed to create openGL display\n");
 	
 
 	/*
@@ -99,8 +99,6 @@ int main( int argc, char** argv ){
 	}
 	
 	printf("camera-viewer:  camera open for streaming\n");
-
-
 
   cv::VideoWriter writer;
 
@@ -128,48 +126,48 @@ int main( int argc, char** argv ){
 	/*
 	 * processing loop
 	 */
-	while( !signal_recieved )
-	{
+	while( !signal_recieved ){
 
     void* imgCPU  = NULL;
     void* imgCUDA = NULL;
-    float* imgBGR = NULL;
+    void* imgBGR = NULL;
+    float* imgRGBA = NULL;
 
-    if( !camera->Capture(&imgCPU, &imgCUDA, 100) ){
+    //if( !camera->Capture(&imgCPU, &imgCUDA, 100) ){
+    if( !camera->CaptureRGBA(&imgRGBA, 1000) ){
       printf("camera-viewer:  failed to capture RGBA image\n");
 	  }else{
 
-      if( !camera->make(imgCUDA, &imgBGR, true) ){
-        printf("failed to convert from NV12 to BGRA");
-      }
+      // if( !camera->ConvertBGR8((float *)imgCUDA, &imgBGR, true) ){
+      //   printf("failed to convert from NV12 to BGRA\n");
+      // }else{
+      //   CUDA(cudaDeviceSynchronize());
+      //   camera_frame = cv::Mat(imgHeight, imgWidth, CV_8UC3, imgBGR);
 
-      CUDA(cudaDeviceSynchronize());
-
-      camera_frame = cv::Mat(imgHeight, imgWidth, CV_8UC3, imgBGR);
-
-      if(camera_frame.cols != 0 && camera_frame.rows != 0){
-        writer << camera_frame;
-      }
+      //   if(camera_frame.cols != 0 && camera_frame.rows != 0){
+      //     writer << camera_frame;
+      //   }
+      // }
 
       // update display
-      // if( display != NULL )
-      // {
-      // 	//display->RenderOnce(imgRGBA, camera->GetWidth(), camera->GetHeight());
+      if( display != NULL )
+      {
+      	display->RenderOnce(imgRGBA, camera->GetWidth(), camera->GetHeight());
         
-      //   if(camera_frame.cols != 0 && camera_frame.rows != 0){
-      // 	  cv::imshow("Converted", camera_frame);
-      // 	  cv::waitKey(33);
-      //   }
+        // if(camera_frame.cols != 0 && camera_frame.rows != 0){
+      	//   cv::imshow("Converted", camera_frame);
+      	//   cv::waitKey(33);
+        // }
 
-      // 	// update status bar
-      // 	char str[256];
-      // 	sprintf(str, "Camera Viewer (%ux%u) | %.0f FPS", camera->GetWidth(), camera->GetHeight(), display->GetFPS());
-      // 	display->SetTitle(str);	
+      	// update status bar
+      	char str[256];
+      	sprintf(str, "Camera Viewer (%ux%u) | %.0f FPS", camera->GetWidth(), camera->GetHeight(), display->GetFPS());
+      	display->SetTitle(str);	
 
-      // 	// check if the user quit
-      // 	if( display->IsClosed() )
-      // 		signal_recieved = true;
-      // }
+      	// check if the user quit
+      	if( display->IsClosed() )
+      		signal_recieved = true;
+      }
     }
 	}
 	
@@ -179,7 +177,7 @@ int main( int argc, char** argv ){
 	printf("\ncamera-viewer:  shutting down...\n");
 	
 	SAFE_DELETE(camera);
-	//SAFE_DELETE(display);
+	SAFE_DELETE(display);
 
 	printf("camera-viewer:  shutdown complete.\n");
 	return 0;
