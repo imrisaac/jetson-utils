@@ -100,42 +100,56 @@ int main( int argc, char** argv ){
 	
 	printf("camera-viewer:  camera open for streaming\n");
 
+
+
+  cv::VideoWriter writer;
+
+  std::string gstSink = "appsrc ! " 
+                        "videoconvert ! "
+                        "omxh264enc "
+                          "preset-level=1 "
+                          "control_rate=2 "
+                          "insert-vui=true "
+                          "bitrate=2500000 ! "
+                        "mpegtsmux "
+                          "alignment=7 ! "
+                        "udpsink "
+                          "host=192.168.0.255 "
+                          "port=49410 "
+                          "sync=false "
+                          "async=false "
+                          "close-socket=false "; // 300ms
+
   int imgWidth = camera->GetWidth();
   int imgHeight = camera->GetHeight();
-	void* imgCPU  = NULL;
-  void* imgCUDA = NULL;
-  void* imgBGR = NULL;
+
+  writer.open(gstSink, 0, (double)60, cv::Size(imgWidth, imgHeight), true);
+
 	/*
 	 * processing loop
 	 */
 	while( !signal_recieved )
 	{
 
+    void* imgCPU  = NULL;
+    void* imgCUDA = NULL;
+    void* imgBGR = NULL;
 
-
-    if( !camera->Capture(&imgCPU, &imgCUDA, 2000) ){
+    if( !camera->Capture(&imgCPU, &imgCUDA, 100) ){
       printf("camera-viewer:  failed to capture RGBA image\n");
 	  }else{
 
-      if( !camera->ConvertBGR8(imgCUDA, &imgBGR, true) ){
+      if( !camera->ConvertBGR8(imgCPU, &imgBGR, true) ){
         printf("failed to convert from NV12 to BGRA");
       }
 
-      cudaDeviceSynchronize();
+      CUDA(cudaDeviceSynchronize());
 
-      //camera_frame = cv::Mat::zeros((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3);
-      camera_frame = cv::Mat(imgHeight, imgWidth, CV_8UC3, imgBGR).clone();
-      //printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
+      camera_frame = cv::Mat(imgHeight, imgWidth, CV_8UC3, imgBGR);
 
-      // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
-      // camera_frame.convertTo(Temp, CV_8UC4);
-
-      //cv::cvtColor(camera_frame, camera_frame_BGR, cv::COLOR_RGBA2BGR);
       if(camera_frame.cols != 0 && camera_frame.rows != 0){
-        cv::imshow("Converted", camera_frame);
-        cv::waitKey(1);
+        writer << camera_frame;
       }
-
 
       // update display
       // if( display != NULL )
