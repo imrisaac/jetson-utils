@@ -315,7 +315,6 @@ bool gstCamera::ConvertBGR8( void* input, void** output, bool zeroCopy )
   {
     const size_t size = mWidth * mHeight * sizeof(uchar3);
 
-    printf("%d %d %d\n",mWidth, mHeight, size);
     for( uint32_t n=0; n < NUM_RINGBUFFERS; n++ ){
       if( zeroCopy )
       {
@@ -501,24 +500,25 @@ bool gstCamera::buildLaunchStr( gstCameraSrc src )
     }else if( src == GST_SOURCE_NVARGUS ){
 			ss << "nvarguscamerasrc "
               "sensor-id=" << mSensorCSI << " "
-              "maxperf=true ! "
+              //"maxperf=true ! "
+              " ! "
             "video/x-raw(memory:NVMM), "
               "width=(int)" << mWidth << ", "
               "height=(int)" << mHeight << ", "
-              "framerate=(fraction)120/1, "
-              "format=(string)NV12 ! "
+              "framerate=(fraction)160/1, "
+              "format=(string)NV12 "
+              " ! "
             "nvvidconv "
               "flip-method=" << flipMethod << " ! "
             "video/x-raw, "
                "format=(string)RGBA ! ";
-            // "videorate ! video/x-raw, framerate=60/1 ! ";
+            "videorate ! video/x-raw, framerate=30/1 ! ";
     }
 
-		ss << "appsink " 
+		ss << "appsink "
               "wait-on-eos=false " 
               "drop=true " 
-              "max-buffers=30 " 
-              "emit-signals=true "
+              "max-buffers=160 " 
               "name=mysink ";
 	}
 	else
