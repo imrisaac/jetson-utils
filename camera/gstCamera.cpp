@@ -512,7 +512,7 @@ bool gstCamera::buildLaunchStr( gstCameraSrc src )
             "video/x-raw, "
                "format=(string)RGBA ! ";
             // "videorate ! video/x-raw, framerate=60/1 ! ";
-    }k
+    }
 
 		ss << "appsink " 
               "wait-on-eos=false " 
