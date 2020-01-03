@@ -64,9 +64,27 @@ int main( int argc, char** argv ){
 	/*
 	 * create the camera device
 	 */
-	gstCamera* camera = gstCamera::Create(1920,
-								   1080,
+	gstCamera* camera = gstCamera::Create(960,
+								   720,
 								   cmdLine.GetString("camera"));
+
+    cv::VideoWriter writer;
+
+  std::string gstSink = "appsrc ! " 
+                        "videoconvert ! "
+                        "omxh264enc "
+                          "preset-level=1 "
+                          "control_rate=2 "
+                          "insert-vui=true "
+                          "bitrate=2500000 ! "
+                        "mpegtsmux "
+                          "alignment=7 ! "
+                        "udpsink "
+                          "host=192.168.0.255 "
+                          "port=49410 "
+                          "sync=false "
+                          "async=false "
+                          "close-socket=false "; // 300ms
 
 	if( !camera )
 	{
@@ -100,14 +118,19 @@ int main( int argc, char** argv ){
 	
 	printf("camera-viewer:  camera open for streaming\n");
 	
+  int imgWidth = camera->GetWidth();
+  int imgHeight = camera->GetHeight();
+
+  writer.open(gstSink, 0, (double)120, cv::Size(imgWidth, imgHeight), true);
+  // capture latest image
+  uchar3* imgRGBA = NULL;
+
 	/*
 	 * processing loop
 	 */
 	while( !signal_recieved )
 	{
-		// capture latest image
-		uchar3* imgRGBA = NULL;
-		
+
     // Capture RGBA gives us 4 channel 32bit float pixels
 		if( !camera->CaptureRGBA(&imgRGBA, 2000, true) ){
 			printf("camera-viewer:  failed to capture RGBA image\n");
@@ -123,17 +146,20 @@ int main( int argc, char** argv ){
 
       // printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
 
-      if(camera_frame.cols != 0){
-        cv::imshow("Converted",camera_frame);
-        cv::waitKey(33);
-      }
+      // if(camera_frame.cols != 0){
+      //   cv::imshow("Converted",camera_frame);
+      //   cv::waitKey(33);
+      // }
+
+      if(camera_frame.cols != 0 && camera_frame.rows != 0){
+          writer << camera_frame;
+        }
 
       // update display
       if( display != NULL )
       {
         //display->RenderOnce((float*)imgRGBA, camera->GetWidth(), camera->GetHeight());
         
-
         // update status bar
         char str[256];
         sprintf(str, "Camera Viewer (%ux%u) | %.0f FPS", camera->GetWidth(), camera->GetHeight(), display->GetFPS());

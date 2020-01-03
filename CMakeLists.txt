@@ -103,7 +103,6 @@ install(TARGETS jetson-utils DESTINATION lib EXPORT jetson-utilsConfig)
 # install the cmake project, for importing
 install(EXPORT jetson-utilsConfig DESTINATION share/jetson-utils/cmake)
 
-
 # build tests/sample executables
 add_subdirectory(camera/camera-viewer)
 # add_subdirectory(camera/v4l2-console)

@@ -505,7 +505,7 @@ bool gstCamera::buildLaunchStr( gstCameraSrc src )
             "video/x-raw(memory:NVMM), "
               "width=(int)" << mWidth << ", "
               "height=(int)" << mHeight << ", "
-              "framerate=60/1, "
+              "framerate=30/1, "
               "format=(string)NV12 ! "
             "nvvidconv "
               "flip-method=" << flipMethod << " ! "
