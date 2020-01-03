@@ -762,7 +762,6 @@ void gstCamera::Close()
 	mStreaming = false;
 }
 
-
 // checkMsgBus
 void gstCamera::checkMsgBus()
 {
@@ -776,5 +775,15 @@ void gstCamera::checkMsgBus()
 		gst_message_print(mBus, msg, this);
 		gst_message_unref(msg);
 	}
+}
+
+bool gstCamera::PausePipeline(){
+  gst_element_set_state(mPipeline, GST_STATE_READY)
+  return true;
+}
+
+bool gstCamera::ResumePipeline(){
+  gst_element_set_state(mPipeline, GST_STATE_PLAYING);
+  return true;
 }
 
