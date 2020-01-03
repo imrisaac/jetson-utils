@@ -303,7 +303,7 @@ private:
 	uint32_t mDepth;
 	uint32_t mSize;
 
-	static const uint32_t NUM_RINGBUFFERS = 16;
+	static const uint32_t NUM_RINGBUFFERS = 1;
 	
 	void* mRingbufferCPU[NUM_RINGBUFFERS];
 	void* mRingbufferGPU[NUM_RINGBUFFERS];
