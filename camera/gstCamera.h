@@ -29,6 +29,12 @@
 #include "Mutex.h"
 #include "Event.h"
 
+#include "cudaMappedMemory.h"
+#include "cudaYUV.h"
+#include "cudaRGB.h"
+
+#include "NvInfer.h"
+
 
 // Forward declarations
 struct _GstAppSink;
@@ -200,7 +206,7 @@ public:
 	 * @returns `true` if a frame was successfully captured, otherwise `false` if a timeout
 	 *               or error occurred, or if timeout was 0 and a frame wasn't ready.
 	 */
-	bool CaptureRGBA( float** image, uint64_t timeout=UINT64_MAX, bool zeroCopy=false );
+	bool CaptureRGBA( uchar3** image, uint64_t timeout=UINT64_MAX, bool zeroCopy=false );
 	
 	/**
 	 * Convert an image to float4 RGBA that was previously aquired with Capture().
@@ -226,7 +232,7 @@ public:
 	 * 
 	 * @returns `true` on success, `false` if an error occurred.
 	 */
-	bool ConvertRGBA( void* input, float** output, bool zeroCopy=false );
+	bool ConvertRGBA( void* input, uchar3** output, bool zeroCopy=false );
 
   // Takes in captured YUV-NV12 CUDA image, converts to uint8 BGR (with pixel intensity 0-255)
 	// Set zeroCopy to true if you need to access ConvertBGR8 from CPU, otherwise it will be CUDA only.

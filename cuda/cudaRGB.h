@@ -98,14 +98,14 @@ cudaError_t cudaRGBA32ToRGBA8( float4* input, uchar4* output, size_t width, size
  * Assumes 0.0-255.0f input range, output range is 0-255.
  * @ingroup colorspace
  */
-cudaError_t cudaRGBA32ToBGR8( float4* input, uchar3* output, size_t width, size_t height );
+cudaError_t cudaRGBA32ToBGR8( uchar4* input, uchar3* output, size_t width, size_t height );
 
 /**
  * Convert 32-bit floating-point RGBA image into 8-bit fixed-point BGR image,
  * with the floating-point input range specified by the user.  Output range is 0-255.
  * @ingroup colorspace
  */
-cudaError_t cudaRGBA32ToBGR8( float4* input, uchar3* output, size_t width, size_t height, const float2& inputRange );
+cudaError_t cudaRGBA32ToBGR8( uchar4* input, uchar3* output, size_t width, size_t height, const float2& inputRange );
 
 /**
  * Convert 32-bit floating-point RGBA image into 8-bit fixed-point BGRA image.

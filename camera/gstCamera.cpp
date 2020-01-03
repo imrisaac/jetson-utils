@@ -30,11 +30,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "cudaMappedMemory.h"
-#include "cudaYUV.h"
-#include "cudaRGB.h"
 
-#include "NvInfer.h"
 
 
 // gstCameraSrcToString
@@ -188,7 +184,7 @@ bool gstCamera::Capture( void** cpu, void** cuda, uint64_t timeout )
 
 
 // CaptureRGBA
-bool gstCamera::CaptureRGBA( float** output, unsigned long timeout, bool zeroCopy )
+bool gstCamera::CaptureRGBA( uchar3** output, unsigned long timeout, bool zeroCopy )
 {
 	void* cpu = NULL;
 	void* gpu = NULL;
@@ -210,7 +206,7 @@ bool gstCamera::CaptureRGBA( float** output, unsigned long timeout, bool zeroCop
 	
 
 // ConvertRGBA
-bool gstCamera::ConvertRGBA( void* input, float** output, bool zeroCopy )
+bool gstCamera::ConvertRGBA( void* input, uchar3** output, bool zeroCopy )
 {
 	if( !input || !output )
 		return false;
@@ -278,7 +274,7 @@ bool gstCamera::ConvertRGBA( void* input, float** output, bool zeroCopy )
 	if( csiCamera() )
 	{
 		// MIPI CSI camera is NV12
-		if( CUDA_FAILED(cudaNV12ToRGBA32((uint8_t*)input, (float4*)mRGBA[mLatestRGBA], mWidth, mHeight)) )
+		if( CUDA_FAILED(cudaRGBA32ToBGR8((uchar4*)input, (uchar3*)mRGBA[mLatestRGBA], mWidth, mHeight)) )
 			return false;
 	}
 	else
@@ -288,7 +284,7 @@ bool gstCamera::ConvertRGBA( void* input, float** output, bool zeroCopy )
 			return false;
 	}
 	
-	*output     = (float*)mRGBA[mLatestRGBA];
+	*output     = (uchar3*)mRGBA[mLatestRGBA];
 	mLatestRGBA = (mLatestRGBA + 1) % NUM_RINGBUFFERS;
 	return true;
 }
@@ -503,9 +499,20 @@ bool gstCamera::buildLaunchStr( gstCameraSrc src )
 		if( src == GST_SOURCE_NVCAMERA )
 			ss << "nvcamerasrc fpsRange=\"30.0 30.0\" ! video/x-raw(memory:NVMM), width=(int)" << mWidth << ", height=(int)" << mHeight << ", format=(string)NV12 ! nvvidconv flip-method=" << flipMethod << " ! "; //'video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080, format=(string)I420, framerate=(fraction)30/1' ! ";
 		else if( src == GST_SOURCE_NVARGUS )
-			ss << "nvarguscamerasrc sensor-id=" << mSensorCSI << " ! video/x-raw(memory:NVMM), width=(int)" << mWidth << ", height=(int)" << mHeight << ", framerate=30/1, format=(string)NV12 ! nvvidconv flip-method=" << flipMethod << " ! ";
-		
-		ss << "video/x-raw ! appsink name=mysink";
+			ss << "nvarguscamerasrc "
+              "sensor-id=" << mSensorCSI << " "
+              "maxperf=true ! "
+            "video/x-raw(memory:NVMM), "
+              "width=(int)" << mWidth << ", "
+              "height=(int)" << mHeight << ", "
+              "framerate=60/1, "
+              "format=(string)NV12 ! "
+            "nvvidconv "
+              "flip-method=" << flipMethod << " ! "
+            "video/x-raw, "
+              "format=(string)RGBA ! ";
+
+		ss << "appsink name=mysink";
 	}
 	else
 	{

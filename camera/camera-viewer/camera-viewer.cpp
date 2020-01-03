@@ -64,8 +64,8 @@ int main( int argc, char** argv ){
 	/*
 	 * create the camera device
 	 */
-	gstCamera* camera = gstCamera::Create(cmdLine.GetInt("width", gstCamera::DefaultWidth),
-								   cmdLine.GetInt("height", gstCamera::DefaultHeight),
+	gstCamera* camera = gstCamera::Create(1920,
+								   1080,
 								   cmdLine.GetString("camera"));
 
 	if( !camera )
@@ -83,7 +83,7 @@ int main( int argc, char** argv ){
 	/*
 	 * create openGL window
 	 */
-	glDisplay* display = glDisplay::Create();
+	glDisplay* display = NULL;
 	
 	if( !display )
 		printf("camera-viewer:  failed to create openGL display\n");
@@ -106,39 +106,44 @@ int main( int argc, char** argv ){
 	while( !signal_recieved )
 	{
 		// capture latest image
-		float* imgRGBA = NULL;
+		uchar3* imgRGBA = NULL;
 		
     // Capture RGBA gives us 4 channel 32bit float pixels
 		if( !camera->CaptureRGBA(&imgRGBA, 2000, true) ){
 			printf("camera-viewer:  failed to capture RGBA image\n");
+    }else{
+
+      cudaDeviceSynchronize();
+      camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_8UC3, imgRGBA);
+
+      // // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
+      // camera_frame.convertTo(Temp, CV_8UC4);
+
+      // cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
+
+      // printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
+
+      if(camera_frame.cols != 0){
+        cv::imshow("Converted",camera_frame);
+        cv::waitKey(33);
+      }
+
+      // update display
+      if( display != NULL )
+      {
+        //display->RenderOnce((float*)imgRGBA, camera->GetWidth(), camera->GetHeight());
+        
+
+        // update status bar
+        char str[256];
+        sprintf(str, "Camera Viewer (%ux%u) | %.0f FPS", camera->GetWidth(), camera->GetHeight(), display->GetFPS());
+        display->SetTitle(str);	
+
+        // check if the user quit
+        if( display->IsClosed() )
+          signal_recieved = true;
+      }
     }
-
-    camera_frame = cv::Mat((int)camera->GetHeight(), (int)camera->GetWidth(), CV_32FC4, imgRGBA);
-
-    // This is the most time consuming step converting from RGBA 32 bit float to BGR 8 bit int
-    camera_frame.convertTo(Temp, CV_8UC4);
-
-    cv::cvtColor(Temp, camera_frame_BGR, cv::COLOR_RGBA2BGR);
-
-    printf("frame size %d %d\n", camera_frame.cols, camera_frame.rows);
-
-    // update display
-		if( display != NULL )
-		{
-			display->RenderOnce((float*)imgRGBA, camera->GetWidth(), camera->GetHeight());
-			
-			//cv::imshow("Converted",camera_frame_BGR);
-			//cv::waitKey(33);
-
-			// update status bar
-			char str[256];
-			sprintf(str, "Camera Viewer (%ux%u) | %.0f FPS", camera->GetWidth(), camera->GetHeight(), display->GetFPS());
-			display->SetTitle(str);	
-
-			// check if the user quit
-			if( display->IsClosed() )
-				signal_recieved = true;
-		}
 	}
 	
 
