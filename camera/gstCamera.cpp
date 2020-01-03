@@ -496,23 +496,30 @@ bool gstCamera::buildLaunchStr( gstCameraSrc src )
 		const int flipMethod = 2;
 	#endif	
 
-		if( src == GST_SOURCE_NVCAMERA )
+		if( src == GST_SOURCE_NVCAMERA ){
 			ss << "nvcamerasrc fpsRange=\"30.0 30.0\" ! video/x-raw(memory:NVMM), width=(int)" << mWidth << ", height=(int)" << mHeight << ", format=(string)NV12 ! nvvidconv flip-method=" << flipMethod << " ! "; //'video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080, format=(string)I420, framerate=(fraction)30/1' ! ";
-		else if( src == GST_SOURCE_NVARGUS )
+    }else if( src == GST_SOURCE_NVARGUS ){
 			ss << "nvarguscamerasrc "
               "sensor-id=" << mSensorCSI << " "
               "maxperf=true ! "
             "video/x-raw(memory:NVMM), "
               "width=(int)" << mWidth << ", "
               "height=(int)" << mHeight << ", "
-              "framerate=30/1, "
+              "framerate=(fraction)120/1, "
               "format=(string)NV12 ! "
             "nvvidconv "
               "flip-method=" << flipMethod << " ! "
             "video/x-raw, "
-              "format=(string)RGBA ! ";
+               "format=(string)RGBA ! ";
+            // "videorate ! video/x-raw, framerate=60/1 ! ";
+    }
 
-		ss << "appsink name=mysink";
+		ss << "appsink " 
+              "wait-on-eos=false " 
+              "drop=true " 
+              "max-buffers=30 " 
+              "emit-signals=true "
+              "name=mysink ";
 	}
 	else
 	{
