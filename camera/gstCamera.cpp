@@ -778,7 +778,7 @@ void gstCamera::checkMsgBus()
 }
 
 bool gstCamera::PausePipeline(){
-  gst_element_set_state(mPipeline, GST_STATE_READY)
+  gst_element_set_state(mPipeline, GST_STATE_PAUSED);
   return true;
 }
 
