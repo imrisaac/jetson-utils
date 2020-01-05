@@ -315,7 +315,6 @@ bool gstCamera::ConvertBGR8( void* input, void** output, bool zeroCopy )
   {
     const size_t size = mWidth * mHeight * sizeof(uchar3);
 
-    printf("%d %d %d\n",mWidth, mHeight, size);
     for( uint32_t n=0; n < NUM_RINGBUFFERS; n++ ){
       if( zeroCopy )
       {
@@ -496,23 +495,31 @@ bool gstCamera::buildLaunchStr( gstCameraSrc src )
 		const int flipMethod = 2;
 	#endif	
 
-		if( src == GST_SOURCE_NVCAMERA )
+		if( src == GST_SOURCE_NVCAMERA ){
 			ss << "nvcamerasrc fpsRange=\"30.0 30.0\" ! video/x-raw(memory:NVMM), width=(int)" << mWidth << ", height=(int)" << mHeight << ", format=(string)NV12 ! nvvidconv flip-method=" << flipMethod << " ! "; //'video/x-raw(memory:NVMM), width=(int)1920, height=(int)1080, format=(string)I420, framerate=(fraction)30/1' ! ";
-		else if( src == GST_SOURCE_NVARGUS )
+    }else if( src == GST_SOURCE_NVARGUS ){
 			ss << "nvarguscamerasrc "
               "sensor-id=" << mSensorCSI << " "
-              "maxperf=true ! "
+              //"maxperf=true ! "
+              " ! "
             "video/x-raw(memory:NVMM), "
               "width=(int)" << mWidth << ", "
               "height=(int)" << mHeight << ", "
-              "framerate=30/1, "
-              "format=(string)NV12 ! "
+              "framerate=(fraction)160/1, "
+              "format=(string)NV12 "
+              " ! "
             "nvvidconv "
               "flip-method=" << flipMethod << " ! "
             "video/x-raw, "
-              "format=(string)RGBA ! ";
+               "format=(string)RGBA ! ";
+            "videorate ! video/x-raw, framerate=30/1 ! ";
+    }
 
-		ss << "appsink name=mysink";
+		ss << "appsink "
+              "wait-on-eos=false " 
+              "drop=true " 
+              "max-buffers=160 " 
+              "name=mysink ";
 	}
 	else
 	{
@@ -755,7 +762,6 @@ void gstCamera::Close()
 	mStreaming = false;
 }
 
-
 // checkMsgBus
 void gstCamera::checkMsgBus()
 {
@@ -769,5 +775,15 @@ void gstCamera::checkMsgBus()
 		gst_message_print(mBus, msg, this);
 		gst_message_unref(msg);
 	}
+}
+
+bool gstCamera::PausePipeline(){
+  gst_element_set_state(mPipeline, GST_STATE_PAUSED);
+  return true;
+}
+
+bool gstCamera::ResumePipeline(){
+  gst_element_set_state(mPipeline, GST_STATE_PLAYING);
+  return true;
 }
 
