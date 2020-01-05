@@ -86,8 +86,7 @@ int main( int argc, char** argv ){
                           "async=false "
                           "close-socket=false "; // 300ms
 
-	if( !camera )
-	{
+	if( !camera ){
 		printf("\ncamera-viewer:  failed to initialize camera device\n");
 		return 0;
 	}
@@ -97,7 +96,6 @@ int main( int argc, char** argv ){
 	printf("   height:  %u\n", camera->GetHeight());
 	printf("    depth:  %u (bpp)\n", camera->GetPixelDepth());
 	
-
 	/*
 	 * create openGL window
 	 */
@@ -106,7 +104,6 @@ int main( int argc, char** argv ){
 	if( !display )
 		printf("camera-viewer:  failed to create openGL display\n");
 	
-
 	/*
 	 * start streaming
 	 */
@@ -131,7 +128,7 @@ int main( int argc, char** argv ){
 	while( !signal_recieved )
 	{
 
-    // Capture RGBA gives us 4 channel 32bit float pixels
+    // Capture RGBA gives us 4 channel 8 bits per pixel
 		if( !camera->CaptureRGBA(&imgRGBA, 2000, true) ){
 			printf("camera-viewer:  failed to capture RGBA image\n");
     }else{
