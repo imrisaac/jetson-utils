@@ -64,8 +64,8 @@ int main( int argc, char** argv ){
 	/*
 	 * create the camera device
 	 */
-	gstCamera* camera = gstCamera::Create(960,
-								   720,
+	gstCamera* camera = gstCamera::Create(1920,
+								   1080,
 								   cmdLine.GetString("camera"));
 
     cv::VideoWriter writer;
@@ -81,7 +81,7 @@ int main( int argc, char** argv ){
                           "alignment=7 ! "
                         "udpsink "
                           "host=192.168.0.255 "
-                          "port=49410 "
+                          "port=49500 "
                           "sync=false "
                           "async=false "
                           "close-socket=false "; // 300ms
