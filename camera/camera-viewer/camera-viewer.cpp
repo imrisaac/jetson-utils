@@ -48,6 +48,7 @@ void sig_handler(int signo)
 }
 
 
+
 int main( int argc, char** argv ){
 	commandLine cmdLine(argc, argv);
 
@@ -100,18 +101,38 @@ int main( int argc, char** argv ){
 	
 	printf("camera-viewer:  camera open for streaming\n");
 
+  cv::VideoWriter writer;
+
+  std::string gstSink = "appsrc ! " 
+                        "videoconvert ! "
+                        "omxh264enc "
+                          "preset-level=1 "
+                          "control_rate=2 "
+                          "insert-vui=true "
+                          "bitrate=2500000 ! "
+                        "mpegtsmux "
+                          "alignment=7 ! "
+                        "udpsink "
+                          "host=192.168.0.255 "
+                          "port=49500 "
+                          "sync=false "
+                          "async=false "
+                          "close-socket=false "; // 300ms
+
+
   int imgWidth = camera->GetWidth();
   int imgHeight = camera->GetHeight();
 	void* imgCPU  = NULL;
   void* imgCUDA = NULL;
   void* imgBGR = NULL;
+
+  writer.open(gstSink, 0, (double)120, cv::Size(imgWidth, imgHeight), true);
+
 	/*
 	 * processing loop
 	 */
 	while( !signal_recieved )
 	{
-
-
 
     if( !camera->Capture(&imgCPU, &imgCUDA, 2000) ){
       printf("camera-viewer:  failed to capture RGBA image\n");
@@ -132,8 +153,9 @@ int main( int argc, char** argv ){
 
       //cv::cvtColor(camera_frame, camera_frame_BGR, cv::COLOR_RGBA2BGR);
       if(camera_frame.cols != 0 && camera_frame.rows != 0){
-        cv::imshow("Converted", camera_frame);
-        cv::waitKey(1);
+        // cv::imshow("Converted", camera_frame);
+        // cv::waitKey(1);
+        writer << camera_frame;
       }
 
 
