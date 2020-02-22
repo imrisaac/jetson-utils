@@ -120,7 +120,7 @@ public:
 	static gstCamera* Create( uint32_t width, uint32_t height, const char* camera=NULL );
 	
   static gstCamera* Create(GstElement *pipeline);
-	
+	lop
   /**
 	 * Release the camera interface and resources.
 	 * Destroying the camera will also Close() the stream if it is still open.
