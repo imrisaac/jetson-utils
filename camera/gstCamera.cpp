@@ -672,7 +672,7 @@ bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline )
 
     pipeline = GST_PIPELINE(mPipeline);
   }else if(external_pipeline != NULL){
-    pipeline = external_pipeline;
+    pipeline = *external_pipeline;
   }else{
     return false;
   }
