@@ -289,7 +289,7 @@ private:
 
 	gstCamera();
 
-	bool init( gstCameraSrc src );
+	bool init( gstCameraSrc src, GstElement *external_pipeline );
 	bool buildLaunchStr( gstCameraSrc src );
 	bool parseCameraStr( const char* camera );
 

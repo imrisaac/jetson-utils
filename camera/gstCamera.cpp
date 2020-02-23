@@ -649,6 +649,7 @@ bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline )
 {
 	GError* err = NULL;
 	printf(LOG_GSTREAMER "gstCamera attempting to initialize with %s, camera %s\n", gstCameraSrcToString(src), mCameraStr.c_str());
+  GstPipeline* pipeline;
 
   if(external_pipeline == NULL){
     // build pipeline string
@@ -669,7 +670,11 @@ bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline )
       return false;
     }
 
-    GstPipeline* pipeline = GST_PIPELINE(mPipeline);
+    pipeline = GST_PIPELINE(mPipeline);
+  }else if(external_pipeline != NULL){
+    pipeline = external_pipeline;
+  }else{
+    return false;
   }
 
 	if( !pipeline )
