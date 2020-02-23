@@ -120,7 +120,7 @@ public:
 	 */
 	static gstCamera* Create( uint32_t width, uint32_t height, const char* camera=NULL );
 	
-  static gstCamera* Create(GstElement *pipeline);
+  static gstCamera* Create(GstPipeline *pipeline);
 	
   /**
 	 * Release the camera interface and resources.
@@ -289,7 +289,7 @@ private:
 
 	gstCamera();
 
-	bool init( gstCameraSrc src, GstElement *external_pipeline );
+	bool init( gstCameraSrc src, GstPipeline *external_pipeline );
 	bool buildLaunchStr( gstCameraSrc src );
 	bool parseCameraStr( const char* camera );
 
