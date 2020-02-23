@@ -633,7 +633,7 @@ gstCamera* gstCamera::Create( const char* camera )
 }
 
 // Create
-gstCamera* gstCamera::Create(GstPipeline *pipeline)
+gstCamera* gstCamera::Create(GstElement *pipeline)
 {
   gstCamera* cam = new gstCamera();
   if(!cam->init(GST_SOURCE_EXTERNAL_PIPELINE, pipeline)){
@@ -645,7 +645,7 @@ gstCamera* gstCamera::Create(GstPipeline *pipeline)
 }
 
 // init
-bool gstCamera::init( gstCameraSrc src, GstPipeline *external_pipeline )
+bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline )
 {
 	GError* err = NULL;
 	printf(LOG_GSTREAMER "gstCamera attempting to initialize with %s, camera %s\n", gstCameraSrcToString(src), mCameraStr.c_str());
@@ -672,7 +672,7 @@ bool gstCamera::init( gstCameraSrc src, GstPipeline *external_pipeline )
 
     pipeline = GST_PIPELINE(mPipeline);
   }else if(external_pipeline != NULL){
-    pipeline = external_pipeline;
+    pipeline = GST_PIPELINE(external_pipeline);
   }else{
     return false;
   }
