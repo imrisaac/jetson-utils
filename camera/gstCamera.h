@@ -46,9 +46,10 @@ struct _GstAppSink;
  */
 enum gstCameraSrc
 {
-	GST_SOURCE_NVCAMERA,	/* use nvcamerasrc element */
-	GST_SOURCE_NVARGUS,		/* use nvargussrc element */
-	GST_SOURCE_V4L2		/* use v4l2src element */
+	GST_SOURCE_NVCAMERA,	        /* use nvcamerasrc element */
+	GST_SOURCE_NVARGUS,	        	/* use nvargussrc element */
+	GST_SOURCE_V4L2,               /* use v4l2src element */
+  GST_SOURCE_EXTERNAL_PIPELINE  /* use pipeline created and managed externally */
 };
 
 /**
@@ -120,7 +121,7 @@ public:
 	static gstCamera* Create( uint32_t width, uint32_t height, const char* camera=NULL );
 	
   static gstCamera* Create(GstElement *pipeline);
-	lop
+	
   /**
 	 * Release the camera interface and resources.
 	 * Destroying the camera will also Close() the stream if it is still open.

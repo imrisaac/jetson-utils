@@ -602,18 +602,18 @@ gstCamera* gstCamera::Create( uint32_t width, uint32_t height, const char* camer
 	cam->mDepth      = cam->csiCamera() ? 12 : 24;	// NV12 or RGB
 	cam->mSize       = (width * height * cam->mDepth) / 8;
 
-	if( !cam->init(GST_SOURCE_NVARGUS) )
+	if( !cam->init(GST_SOURCE_NVARGUS, NULL) )
 	{
 		printf(LOG_GSTREAMER "failed to init gstCamera (GST_SOURCE_NVARGUS, camera %s)\n", cam->mCameraStr.c_str());
 
-		if( !cam->init(GST_SOURCE_NVCAMERA) )
+		if( !cam->init(GST_SOURCE_NVCAMERA, NULL) )
 		{
 			printf(LOG_GSTREAMER "failed to init gstCamera (GST_SOURCE_NVCAMERA, camera %s)\n", cam->mCameraStr.c_str());
 
 			if( cam->mSensorCSI >= 0 )
 				cam->mSensorCSI = -1;
 
-			if( !cam->init(GST_SOURCE_V4L2) )
+			if( !cam->init(GST_SOURCE_V4L2, NULL) )
 			{
 				printf(LOG_GSTREAMER "failed to init gstCamera (GST_SOURCE_V4L2, camera %s)\n", cam->mCameraStr.c_str());
 				return NULL;
@@ -632,32 +632,45 @@ gstCamera* gstCamera::Create( const char* camera )
 	return Create( DefaultWidth, DefaultHeight, camera );
 }
 
+// Create
+gstCamera* gstCamera::Create(GstElement *pipeline)
+{
+  gstCamera* cam = new gstCamera();
+  if(!cam->init(GST_SOURCE_EXTERNAL_PIPELINE, pipeline)){
+    printf(LOG_GSTREAMER "failed to init gstcamera with external pipeline source\n");
+  }
+
+  printf(LOG_GSTREAMER "gstCamera successfully initialized with external pipeline source\n"); 
+	return cam;
+}
 
 // init
-bool gstCamera::init( gstCameraSrc src )
+bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline )
 {
 	GError* err = NULL;
 	printf(LOG_GSTREAMER "gstCamera attempting to initialize with %s, camera %s\n", gstCameraSrcToString(src), mCameraStr.c_str());
 
-	// build pipeline string
-	if( !buildLaunchStr(src) )
-	{
-		printf(LOG_GSTREAMER "gstCamera failed to build pipeline string\n");
-		return false;
-	}
+  if(external_pipeline == NULL){
+    // build pipeline string
+    if( !buildLaunchStr(src) )
+    {
+      printf(LOG_GSTREAMER "gstCamera failed to build pipeline string\n");
+      return false;
+    }
 
-	// launch pipeline
-	mPipeline = gst_parse_launch(mLaunchStr.c_str(), &err);
+    // launch pipeline
+    mPipeline = gst_parse_launch(mLaunchStr.c_str(), &err);
 
-	if( err != NULL )
-	{
-		printf(LOG_GSTREAMER "gstCamera failed to create pipeline\n");
-		printf(LOG_GSTREAMER "   (%s)\n", err->message);
-		g_error_free(err);
-		return false;
-	}
+    if( err != NULL )
+    {
+      printf(LOG_GSTREAMER "gstCamera failed to create pipeline\n");
+      printf(LOG_GSTREAMER "   (%s)\n", err->message);
+      g_error_free(err);
+      return false;
+    }
 
-	GstPipeline* pipeline = GST_PIPELINE(mPipeline);
+    GstPipeline* pipeline = GST_PIPELINE(mPipeline);
+  }
 
 	if( !pipeline )
 	{
