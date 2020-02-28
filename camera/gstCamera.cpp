@@ -602,18 +602,18 @@ gstCamera* gstCamera::Create( uint32_t width, uint32_t height, const char* camer
 	cam->mDepth      = cam->csiCamera() ? 12 : 24;	// NV12 or RGB
 	cam->mSize       = (width * height * cam->mDepth) / 8;
 
-	if( !cam->init(GST_SOURCE_NVARGUS, NULL) )
+	if( !cam->init(GST_SOURCE_NVARGUS, NULL, NULL) )
 	{
 		printf(LOG_GSTREAMER "failed to init gstCamera (GST_SOURCE_NVARGUS, camera %s)\n", cam->mCameraStr.c_str());
 
-		if( !cam->init(GST_SOURCE_NVCAMERA, NULL) )
+		if( !cam->init(GST_SOURCE_NVCAMERA, NULL, NULL) )
 		{
 			printf(LOG_GSTREAMER "failed to init gstCamera (GST_SOURCE_NVCAMERA, camera %s)\n", cam->mCameraStr.c_str());
 
 			if( cam->mSensorCSI >= 0 )
 				cam->mSensorCSI = -1;
 
-			if( !cam->init(GST_SOURCE_V4L2, NULL) )
+			if( !cam->init(GST_SOURCE_V4L2, NULL, NULL) )
 			{
 				printf(LOG_GSTREAMER "failed to init gstCamera (GST_SOURCE_V4L2, camera %s)\n", cam->mCameraStr.c_str());
 				return NULL;
