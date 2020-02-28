@@ -704,7 +704,7 @@ bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline, const cha
   GstAppSink* appsink = GST_APP_SINK(appsinkElement);
 	if( !appsinkElement || !appsink)
 	{
-		printf(LOG_GSTREAMER "gstCamera failed to retrieve AppSink element from pipeline\n");
+		printf(LOG_GSTREAMER "gstCamera failed to retrieve AppSink element: %s from pipeline\n", appsinkName);
 		return false;
 	}
 	
