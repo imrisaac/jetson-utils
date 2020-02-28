@@ -636,7 +636,7 @@ gstCamera* gstCamera::Create( const char* camera )
 gstCamera* gstCamera::Create(GstElement *pipeline, const char *appsinkName=NULL)
 {
   gstCamera* cam = new gstCamera();
-  if(!cam->init(GST_SOURCE_EXTERNAL_PIPELINE, pipeline)){
+  if(!cam->init(GST_SOURCE_EXTERNAL_PIPELINE, pipeline, appsinkName)){
     printf(LOG_GSTREAMER "failed to init gstcamera with external pipeline source\n");
   }
 
