@@ -633,7 +633,7 @@ gstCamera* gstCamera::Create( const char* camera )
 }
 
 // Create
-gstCamera* gstCamera::Create(GstElement *pipeline)
+gstCamera* gstCamera::Create(GstElement *pipeline, const char *appsinkName=NULL)
 {
   gstCamera* cam = new gstCamera();
   if(!cam->init(GST_SOURCE_EXTERNAL_PIPELINE, pipeline)){
@@ -645,7 +645,7 @@ gstCamera* gstCamera::Create(GstElement *pipeline)
 }
 
 // init
-bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline )
+bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline, const char *appsinkName )
 {
 	GError* err = NULL;
 	printf(LOG_GSTREAMER "gstCamera attempting to initialize with %s, camera %s\n", gstCameraSrcToString(src), mCameraStr.c_str());
@@ -694,11 +694,14 @@ bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline )
 
 	// add watch for messages (disabled when we poll the bus ourselves, instead of gmainloop)
 	//gst_bus_add_watch(mBus, (GstBusFunc)gst_message_print, NULL);
-
+  GstElement* appsinkElement = NULL;
 	// get the appsrc
-	GstElement* appsinkElement = gst_bin_get_by_name(GST_BIN(pipeline), "mysink");
-	GstAppSink* appsink = GST_APP_SINK(appsinkElement);
-
+  if(appsinkName == NULL){
+	  appsinkElement = gst_bin_get_by_name(GST_BIN(pipeline), "mysink"); 
+  }else{
+    appsinkElement = gst_bin_get_by_name(GST_BIN(pipeline), appsinkName);  
+  }
+  GstAppSink* appsink = GST_APP_SINK(appsinkElement);
 	if( !appsinkElement || !appsink)
 	{
 		printf(LOG_GSTREAMER "gstCamera failed to retrieve AppSink element from pipeline\n");
