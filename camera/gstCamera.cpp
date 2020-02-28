@@ -645,7 +645,7 @@ gstCamera* gstCamera::Create(GstElement *pipeline, const char *appsinkName=NULL)
 }
 
 // init
-bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline, const char *appsinkName )
+bool gstCamera::init( gstCameraSrc src, GstElement *external_pipeline, const char *appsinkName=NULL )
 {
 	GError* err = NULL;
 	printf(LOG_GSTREAMER "gstCamera attempting to initialize with %s, camera %s\n", gstCameraSrcToString(src), mCameraStr.c_str());
