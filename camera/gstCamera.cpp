@@ -633,7 +633,7 @@ gstCamera* gstCamera::Create( const char* camera )
 }
 
 // Create
-gstCamera* gstCamera::Create(GstElement **pipeline)
+gstCamera* gstCamera::Create(GstElement *pipeline)
 {
   gstCamera* cam = new gstCamera();
   if(!cam->init(GST_SOURCE_EXTERNAL_PIPELINE, pipeline)){
