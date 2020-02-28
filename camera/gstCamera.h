@@ -120,7 +120,7 @@ public:
 	 */
 	static gstCamera* Create( uint32_t width, uint32_t height, const char* camera=NULL );
 	
-  static gstCamera* Create(GstElement *pipeline);
+  static gstCamera* Create(GstElement **pipeline);
 	
   /**
 	 * Release the camera interface and resources.
