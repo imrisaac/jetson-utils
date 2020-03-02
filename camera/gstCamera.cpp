@@ -153,7 +153,9 @@ bool gstCamera::Capture( void** cpu, void** cuda, uint64_t timeout )
 	// confirm the camera is streaming
 	if( !mStreaming )
 	{
-		if( !Open() )
+		printf(LOG_GSTREAMER "camera is not streaming\n");
+    if( !Open() )
+      printf(LOG_GSTREAMER "camera is not open\n");
 			return false;
 	}
 
