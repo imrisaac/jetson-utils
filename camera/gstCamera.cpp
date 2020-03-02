@@ -752,8 +752,8 @@ bool gstCamera::Open()
 	}
 	else if( result != GST_STATE_CHANGE_SUCCESS )
 	{
-		printf(LOG_GSTREAMER "gstCamera failed to set pipeline state to PLAYING (error %u)\n", result);
-		return false;
+		//printf(LOG_GSTREAMER "gstCamera failed to set pipeline state to PLAYING (error %u)\n", result);
+		//return false;
 	}
 
 	checkMsgBus();
