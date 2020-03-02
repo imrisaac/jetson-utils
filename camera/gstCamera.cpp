@@ -736,27 +736,27 @@ bool gstCamera::Open()
 	// transition pipline to STATE_PLAYING
 	printf(LOG_GSTREAMER "opening gstCamera for streaming, transitioning pipeline to GST_STATE_PLAYING\n");
 	
-// 	//const GstStateChangeReturn result = gst_element_set_state(mPipeline, GST_STATE_PLAYING);
+	const GstStateChangeReturn result = gst_element_set_state(mPipeline, GST_STATE_PLAYING);
 
-// 	if( result == GST_STATE_CHANGE_ASYNC )
-// 	{
-// #if 0
-// 		GstMessage* asyncMsg = gst_bus_timed_pop_filtered(mBus, 5 * GST_SECOND, 
-//     	 					      (GstMessageType)(GST_MESSAGE_ASYNC_DONE|GST_MESSAGE_ERROR)); 
+	if( result == GST_STATE_CHANGE_ASYNC )
+	{
+#if 0
+		GstMessage* asyncMsg = gst_bus_timed_pop_filtered(mBus, 5 * GST_SECOND, 
+    	 					      (GstMessageType)(GST_MESSAGE_ASYNC_DONE|GST_MESSAGE_ERROR)); 
 
-// 		if( asyncMsg != NULL )
-// 		{
-// 			gst_message_print(mBus, asyncMsg, this);
-// 			gst_message_unref(asyncMsg);
-// 		}
-// 		else
-// 			printf(LOG_GSTREAMER "gstCamera NULL message after transitioning pipeline to PLAYING...\n");
-// #endif
-// 	}
-// 	else if( result != GST_STATE_CHANGE_SUCCESS )
-// 	{
-// 		//printf(LOG_GSTREAMER "gstCamera failed to set pipeline state to PLAYING (error %u)\n", result);
-// 		//return false;
+		if( asyncMsg != NULL )
+		{
+			gst_message_print(mBus, asyncMsg, this);
+			gst_message_unref(asyncMsg);
+		}
+		else
+			printf(LOG_GSTREAMER "gstCamera NULL message after transitioning pipeline to PLAYING...\n");
+#endif
+	}
+	else if( result != GST_STATE_CHANGE_SUCCESS )
+	{
+		//printf(LOG_GSTREAMER "gstCamera failed to set pipeline state to PLAYING (error %u)\n", result);
+		//return false;
 // 	}
 
 	checkMsgBus();
