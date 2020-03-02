@@ -81,7 +81,7 @@ int main( int argc, char** argv ){
                           "alignment=7 ! "
                         "udpsink "
                           "host=192.168.0.255 "
-                          "port=49500 "
+                          "port=49510 "
                           "sync=false "
                           "async=false "
                           "close-socket=false "; // 300ms
