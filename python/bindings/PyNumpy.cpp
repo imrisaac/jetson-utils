@@ -20,11 +20,11 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-#include "PyNumPy.h"
+#include "PyNumpy.h"
 #include "PyCUDA.h"
 
 #include "cudaMappedMemory.h"
-
+#include "logging.h"
 
 #ifdef HAS_NUMPY
 
@@ -35,8 +35,22 @@
 
 
 
+// imageFormat to numpy dtype
+static int PyNumpy_ConvertFormat( imageFormat format )
+{
+	const imageBaseType baseType = imageFormatBaseType(format);
+
+	if( baseType == IMAGE_FLOAT )
+		return NPY_FLOAT32;
+	else if( baseType == IMAGE_UINT8 )
+		return NPY_UINT8;
+
+	return NPY_VOID;
+}
+
+
 // cudaToNumpy()
-PyObject* PyNumPy_FromCUDA( PyObject* self, PyObject* args, PyObject* kwds )
+PyObject* PyNumpy_FromCUDA( PyObject* self, PyObject* args, PyObject* kwds )
 {
 	// parse arguments
 	PyObject* capsule = NULL;
@@ -47,33 +61,60 @@ PyObject* PyNumPy_FromCUDA( PyObject* self, PyObject* args, PyObject* kwds )
 
 	static char* kwlist[] = {"array", "width", "height", "depth", NULL};
 
-	if( !PyArg_ParseTupleAndKeywords(args, kwds, "Oi|ii", kwlist, &capsule, &width, &height, &depth))
+	if( !PyArg_ParseTupleAndKeywords(args, kwds, "O|iii", kwlist, &capsule, &width, &height, &depth))
 	{
 		PyErr_SetString(PyExc_Exception, LOG_PY_UTILS "cudaToNumpy() failed to parse args tuple");
 		return NULL;
 	}
 
 	// verify dimensions
-	if( width <= 0 || height <= 0 || depth <= 0 )
+	/*if( width <= 0 || height <= 0 || depth <= 0 )
 	{
 		PyErr_SetString(PyExc_Exception, LOG_PY_UTILS "cudaToNumpy() array dimensions are invalid");
 		return NULL;
-	}
+	}*/
 
 	// get pointer to image data
-	void* src = PyCapsule_GetPointer(capsule, CUDA_MAPPED_MEMORY_CAPSULE);	// TODO  support GPU-only memory
-
-	if( !src )
+	PyCudaImage* img = PyCUDA_GetImage(capsule);
+	
+	void* src = NULL;
+	int type = NPY_FLOAT32;	// float is assumed for PyCudaMemory case, but inferred for PyCudaImage case
+	bool mapped = false;
+	
+	if( !img )
 	{
-		PyErr_SetString(PyExc_Exception, LOG_PY_UTILS "cudaToNumpy() failed to get input array pointer from PyCapsule container");
+		PyCudaMemory* mem = PyCUDA_GetMemory(capsule);
+		
+		if( !mem )
+		{
+			PyErr_SetString(PyExc_Exception, LOG_PY_UTILS "cudaToNumpy() failed to get input CUDA pointer from first arg (should be cudaImage or cudaMemory)");
+			return NULL;
+		}
+		
+		src = mem->ptr;
+		mapped = mem->mapped;
+	}
+	else
+	{
+		src    = img->base.ptr;
+		mapped = img->base.mapped;
+		width  = img->width;
+		height = img->height;
+		depth  = imageFormatChannels(img->format);
+		type   = PyNumpy_ConvertFormat(img->format);
+	}
+	
+	if( !mapped )   // TODO  support GPU-only memory
+	{
+		PyErr_SetString(PyExc_Exception, LOG_PY_UTILS "cudaToNumpy() needs to use CUDA mapped memory as input (allocate with mapped=1)");
 		return NULL;
 	}
-
+	
 	// setup dims
 	npy_intp dims[] = { height, width, depth };
 
 	// create numpy array
-	PyObject* array = PyArray_SimpleNewFromData(3, dims, NPY_FLOAT32, src);
+	PyObject* array = PyArray_SimpleNewFromData(3, dims, type, src);
 
 	if( !array )
 	{
@@ -91,20 +132,41 @@ PyObject* PyNumPy_FromCUDA( PyObject* self, PyObject* args, PyObject* kwds )
 }
 
 
-
 // cudaFromNumpy()
-PyObject* PyNumPy_ToCUDA( PyObject* self, PyObject* args )
+PyObject* PyNumpy_ToCUDA( PyObject* self, PyObject* args, PyObject* kwds )
 {
 	PyObject* object = NULL;
 
-	if( !PyArg_ParseTuple(args, "O", &object) )
+	int pyBGR=0;
+	static char* kwlist[] = {"array", "isBGR", NULL};
+
+	if( !PyArg_ParseTupleAndKeywords(args, kwds, "O|i", kwlist, &object, &pyBGR) )
 	{
 		PyErr_SetString(PyExc_Exception, LOG_PY_UTILS "cudaFromNumpy() failed to parse array argument");
 		return NULL;
 	}
 		
+	if( !PyArray_Check(object) )
+	{
+		PyErr_SetString(PyExc_Exception, LOG_PY_UTILS "Object passed to cudaFromNumpy() wasn't a numpy ndarray");
+		return NULL;
+	}
+
+	const bool isBGR = (pyBGR > 0);
+
+	// detect uint8 array - otherwise cast to float
+	const int inputType = PyArray_TYPE((PyArrayObject*)object);
+	int outputType = NPY_FLOAT32;
+	int typeSize = sizeof(float);
+
+	if( inputType == NPY_UINT8 )
+	{
+		outputType = NPY_UINT8;
+		typeSize = sizeof(uint8_t);
+	}
+	
 	// cast to numpy array
-	PyArrayObject* array = (PyArrayObject*)PyArray_FROM_OTF(object, NPY_FLOAT32, NPY_ARRAY_IN_ARRAY|NPY_ARRAY_FORCECAST);
+	PyArrayObject* array = (PyArrayObject*)PyArray_FROM_OTF(object, outputType, NPY_ARRAY_IN_ARRAY|NPY_ARRAY_FORCECAST);
 
 	if( !array )
 		return NULL;
@@ -116,7 +178,7 @@ PyObject* PyNumPy_ToCUDA( PyObject* self, PyObject* args )
 
 	for( int n=0; n < ndim; n++ )
 	{
-		printf(LOG_PY_UTILS "cudaFromNumpy()  ndarray dim %i = %li\n", n, dims[n]);
+		LogDebug(LOG_PY_UTILS "cudaFromNumpy()  ndarray dim %i = %li\n", n, dims[n]);
 
 		if( n == 0 )
 			size = dims[0];
@@ -124,7 +186,7 @@ PyObject* PyNumPy_ToCUDA( PyObject* self, PyObject* args )
 			size *= dims[n];
 	}
 
-	size *= sizeof(float);
+	size *= typeSize;
 
 	if( size == 0 )
 	{
@@ -155,8 +217,49 @@ PyObject* PyNumPy_ToCUDA( PyObject* self, PyObject* args )
 		return NULL;
 	}	
 
+	// detect the image format
+	imageFormat format = IMAGE_UNKNOWN;
+
+	if( outputType == NPY_FLOAT32 )
+	{
+		if( ndim == 2 )
+		{
+			format = IMAGE_GRAY32F;
+		}
+		else if( ndim == 3 )
+		{
+			if( dims[2] == 1 )
+				format = IMAGE_GRAY32F;
+			else if( dims[2] == 3 )
+				format = isBGR ? IMAGE_BGR32F : IMAGE_RGB32F;
+			else if( dims[2] == 4 )
+				format = isBGR ? IMAGE_BGRA32F : IMAGE_RGBA32F;
+		}
+	}
+	else if( outputType == NPY_UINT8 )
+	{
+		if( ndim == 2 )
+		{
+			format = IMAGE_GRAY8;
+		}
+		else if( ndim == 3 )
+		{
+			if( dims[2] == 1 )
+				format = IMAGE_GRAY8;
+			else if( dims[2] == 3 )
+				format = isBGR ? IMAGE_BGR8 : IMAGE_RGB8;
+			else if( dims[2] == 4 )
+				format = isBGR ? IMAGE_BGRA8 : IMAGE_RGBA8;
+		}
+	}
+
 	// register CUDA memory capsule
-	PyObject* capsule = PyCUDA_RegisterMappedMemory(cpuPtr, gpuPtr);
+	PyObject* capsule = NULL;
+
+	if( format != IMAGE_UNKNOWN )	
+		capsule = PyCUDA_RegisterImage(gpuPtr, dims[1], dims[0], format, true);
+	else
+		capsule = PyCUDA_RegisterMemory(gpuPtr, size, true);
 
 	if( !capsule )
 	{
@@ -178,48 +281,48 @@ PyObject* PyNumPy_ToCUDA( PyObject* self, PyObject* args )
 
 static PyMethodDef pyImageIO_Functions[] = 
 {
-	{ "cudaFromNumpy", (PyCFunction)PyNumPy_ToCUDA, METH_VARARGS, "Copy a numpy ndarray to CUDA memory" },
-	{ "cudaToNumpy", (PyCFunction)PyNumPy_FromCUDA, METH_VARARGS|METH_KEYWORDS, "Create a numpy ndarray wrapping the CUDA memory, without copying it" },	
+	{ "cudaFromNumpy", (PyCFunction)PyNumpy_ToCUDA, METH_VARARGS|METH_KEYWORDS, "Copy a numpy ndarray to CUDA memory" },
+	{ "cudaToNumpy", (PyCFunction)PyNumpy_FromCUDA, METH_VARARGS|METH_KEYWORDS, "Create a numpy ndarray wrapping the CUDA memory, without copying it" },	
 	{NULL}  /* Sentinel */
 };
 
 // Register functions
-PyMethodDef* PyNumPy_RegisterFunctions()
+PyMethodDef* PyNumpy_RegisterFunctions()
 {
 	return pyImageIO_Functions;
 }
 
 // Initialize NumPy
-PyMODINIT_FUNC PyNumPy_ImportNumPy()
+PyMODINIT_FUNC PyNumpy_ImportNumPy()
 {
 	import_array();
 	//import_ufunc();	// only needed if using ufunctions
 }
 
 // Register types
-bool PyNumPy_RegisterTypes( PyObject* module )
+bool PyNumpy_RegisterTypes( PyObject* module )
 {
 	if( !module )
 		return false;
 	
-	PyNumPy_ImportNumPy();
+	PyNumpy_ImportNumPy();
 	return true;
 }
 
 #else
 
 // stub functions
-PyMethodDef* PyNumPy_RegisterFunctions()
+PyMethodDef* PyNumpy_RegisterFunctions()
 {
-	printf(LOG_PY_UTILS "compiled without NumPy array conversion support (warning)\n");
-	printf(LOG_PY_UTILS "if you wish to have support for converting NumPy arrays,\n");
-	printf(LOG_PY_UTILS "first run 'sudo apt-get install python-numpy python3-numpy'\n");
+	LogError(LOG_PY_UTILS "compiled without NumPy array conversion support (warning)\n");
+	LogError(LOG_PY_UTILS "if you wish to have support for converting NumPy arrays,\n");
+	LogError(LOG_PY_UTILS "first run 'sudo apt-get install python-numpy python3-numpy'\n");
 
 	return NULL;
 }
 
 // Register types
-bool PyNumPy_RegisterTypes( PyObject* module )
+bool PyNumpy_RegisterTypes( PyObject* module )
 {
 	if( !module )
 		return false;

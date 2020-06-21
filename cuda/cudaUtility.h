@@ -30,6 +30,8 @@
 #include <string.h>
 #include <stdint.h>
 
+#include "logging.h"
+
 
 /**
  * Execute a CUDA call and print out any errors
@@ -85,13 +87,15 @@ inline cudaError_t cudaCheckError(cudaError_t retval, const char* txt, const cha
 
 	//Log("[cuda]   device %i  -  %s\n", activeDevice, txt);
 	
-	printf(LOG_CUDA "%s\n", txt);
-
+	if( retval == cudaSuccess )
+		LogDebug(LOG_CUDA "%s\n", txt);
+	else
+		LogError(LOG_CUDA "%s\n", txt);
 
 	if( retval != cudaSuccess )
 	{
-		printf(LOG_CUDA "   %s (error %u) (hex 0x%02X)\n", cudaGetErrorString(retval), retval, retval);
-		printf(LOG_CUDA "   %s:%i\n", file, line);	
+		LogError(LOG_CUDA "   %s (error %u) (hex 0x%02X)\n", cudaGetErrorString(retval), retval, retval);
+		LogError(LOG_CUDA "   %s:%i\n", file, line);	
 	}
 
 	return retval;
@@ -99,8 +103,19 @@ inline cudaError_t cudaCheckError(cudaError_t retval, const char* txt, const cha
 
 
 /**
- * Check for non-NULL pointer before deleting it,
- * and then set the pointer to NULL.
+ * Check for non-NULL pointer before freeing it, and then set the pointer to NULL.
+ * @ingroup util
+ */
+#define CUDA_FREE(x) 		if(x != NULL) { cudaFree(x); x = NULL; }
+
+/**
+ * Check for non-NULL pointer before freeing it, and then set the pointer to NULL.
+ * @ingroup util
+ */
+#define CUDA_FREE_HOST(x)	if(x != NULL) { cudaFreeHost(x); x = NULL; }
+
+/**
+ * Check for non-NULL pointer before deleting it, and then set the pointer to NULL.
  * @ingroup util
  */
 #define SAFE_DELETE(x) 		if(x != NULL) { delete x; x = NULL; }

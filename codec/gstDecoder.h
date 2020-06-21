@@ -24,6 +24,10 @@
 #define __GSTREAMER_DECODER_H__
 
 #include "gstUtility.h"
+#include "videoSource.h"
+
+#include "Event.h"
+#include "RingBuffer.h"
 
 
 struct _GstAppSink;
@@ -33,39 +37,81 @@ struct _GstAppSink;
  * Hardware-accelerated H.264/H.265 video decoder for Jetson using GStreamer.
  * @ingroup codec
  */
-class gstDecoder
+class gstDecoder : public videoSource
 {
 public:
 	/**
-	 * Create an decoder instance that reads from a video file on disk.
+	 * Create a decoder from the provided video options.
 	 */
-	gstDecoder* Create( gstCodec codec, const char* filename );
-	
+	static gstDecoder* Create( const videoOptions& options );
+
 	/**
-	 * Create an decoder instance that streams over the network.
+	 * Create a decoder instance from resource URI and codec.
 	 */
-	gstDecoder* Create( gstCodec codec, uint16_t port );
-	
-	/**
-	 * Create an decoder instance that streams over the network using multicast.
-	 */
-	gstDecoder* Create( gstCodec codec, const char* multicastIP, uint16_t port );
+	static gstDecoder* Create( const URI& resource, videoOptions::Codec codec );
 	
 	/**
 	 * Destructor
 	 */
 	~gstDecoder();
 	
+	/**
+	 * Capture
+	 */
+	template<typename T> bool Capture( T** image, uint64_t timeout=UINT64_MAX )		{ return Capture((void**)image, imageFormatFromType<T>(), timeout); }
+	
+	/**
+	 * Capture
+	 */
+	virtual bool Capture( void** image, imageFormat format, uint64_t timeout=UINT64_MAX );
+
+	/**
+	 * Open
+	 */
+	virtual bool Open();
+
+	/**
+	 * Close
+	 */
+	virtual void Close();
+
+	/**
+	 * IsEOS
+	 */
+	inline bool IsEOS() const				{ return mEOS; }
+
+	/**
+	 *
+	 */
+	virtual inline uint32_t GetType() const		{ return Type; }
+
+	/**
+	 *
+	 */
+	static const uint32_t Type = (1 << 1);
+
+	/**
+	 *
+	 */
+	static const char* SupportedExtensions[];
+
+	/**
+	 *
+	 */
+	static bool IsSupportedExtension( const char* ext );
 
 protected:
-	gstDecoder();
+	gstDecoder( const videoOptions& options );
 	
 	void checkMsgBus();
 	void checkBuffer();
 	bool buildLaunchStr();
 	
-	bool init( gstCodec codec, const char* filename, const char* multicastIP, uint16_t port );
+	bool init();
+	bool discover();
 	
+	inline bool isLooping() const { return (mOptions.loop < 0) || ((mOptions.loop > 0) && (mLoopCount < mOptions.loop)); }
+
 	static void onEOS(_GstAppSink* sink, void* user_data);
 	static GstFlowReturn onPreroll(_GstAppSink* sink, void* user_data);
 	static GstFlowReturn onBuffer(_GstAppSink* sink, void* user_data);
@@ -73,12 +119,18 @@ protected:
 	_GstBus*     mBus;
 	_GstAppSink* mAppSink;
 	_GstElement* mPipeline;
-	gstCodec     mCodec;
+	//gstCodec     mCodec;
 	
+	Event	   mWaitEvent;
+	RingBuffer   mBufferYUV;
+	RingBuffer   mBufferRGB;
+
 	std::string  mLaunchStr;
-	std::string  mInputPath;
-	std::string  mMulticastIP;
-	uint16_t     mPort;
+	bool         mCustomSize;
+	bool         mEOS;
+	size_t	   mLoopCount;
+	size_t	   mFrameCount;
+	imageFormat  mFormatYUV;
 };
   
 #endif

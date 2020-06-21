@@ -19,87 +19,58 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
- 
-#include "Event.h"
-#include <errno.h>
+
+#ifndef __MULTITHREAD_MUTEX_INLINE_H
+#define __MULTITHREAD_MUTEX_INLINE_H
 
 
 // constructor
-Event::Event( bool autoReset )
+inline Mutex::Mutex()
 {
-	mAutoReset = autoReset;
-	mQuery     = false;
-	
-	pthread_cond_init(&mID, NULL);
+	pthread_mutex_init(&mID, NULL);
 }
 
 
 // destructor
-Event::~Event()
+inline Mutex::~Mutex()
 {
-	pthread_cond_destroy(&mID);
+	pthread_mutex_destroy(&mID);
 }
 
 
-// Query
-bool Event::Query()
-{
-	bool r = false;
-	mQueryMutex.Lock();
-	r = mQuery;
-	mQueryMutex.Unlock();
-	return r;
+// AttemptLock
+inline bool Mutex::AttemptLock()					
+{ 
+	return (pthread_mutex_trylock(&mID) == 0); 
 }
-
-
-// Wake
-void Event::Wake()
-{
-	mQueryMutex.Lock();
-	mQuery = true;
-	pthread_cond_signal(&mID);
-	mQueryMutex.Unlock();
-}
-
-
-// Wait
-bool Event::Wait()
-{
-	mQueryMutex.Lock();
-
-	while(!mQuery)
-		pthread_cond_wait(&mID, mQueryMutex.GetID());
-
-	if( mAutoReset )
-		mQuery = false;
-
-	mQueryMutex.Unlock();
-	return true;
-}
-
-
-// Wait
-bool Event::Wait( const timespec& timeout )
-{
-	mQueryMutex.Lock();
-
-	const timespec abs_time = timeAdd( timestamp(), timeout );
-
-	while(!mQuery)
-	{
-		const int ret = pthread_cond_timedwait(&mID, mQueryMutex.GetID(), &abs_time);
-		
-		if( ret == ETIMEDOUT )
-		{
-			mQueryMutex.Unlock();
-			return false;
-		}
-	}
 	
-	if( mAutoReset )
-		mQuery = false;
 
-	mQueryMutex.Unlock();
-	return true;
+// Lock
+inline void Mutex::Lock()							
+{ 
+	pthread_mutex_lock(&mID); 
 }
 
+
+// Unlock
+inline void Mutex::Unlock()
+{ 
+	pthread_mutex_unlock(&mID); 
+}		
+
+
+// Sync
+inline void Mutex::Sync()							
+{ 
+	Lock(); 
+	Unlock(); 
+}
+
+
+// GetID
+inline pthread_mutex_t* Mutex::GetID()
+{ 
+	return &mID; 
+}
+	
+#endif

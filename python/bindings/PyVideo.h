@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2020, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -20,17 +20,17 @@
  * DEALINGS IN THE SOFTWARE.
  */
  
-#ifndef __PYTHON_BINDINGS_NUMPY__
-#define __PYTHON_BINDINGS_NUMPY__
+#ifndef __PYTHON_BINDINGS_VIDEO__
+#define __PYTHON_BINDINGS_VIDEO__
 
 #include "PyUtils.h"
 
 
 // Register functions
-PyMethodDef* PyNumPy_RegisterFunctions();
+PyMethodDef* PyVideo_RegisterFunctions();
 
 // Register types
-bool PyNumPy_RegisterTypes( PyObject* module );
+bool PyVideo_RegisterTypes( PyObject* module );
 
 
 #endif

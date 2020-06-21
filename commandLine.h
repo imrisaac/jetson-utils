@@ -25,6 +25,7 @@
 
 
 #include <stdlib.h>	
+#include <stdint.h>
 
 
 /**
@@ -37,7 +38,12 @@ public:
 	/**
 	 * Constructor, takes the command line from `main()`
 	 */
-	commandLine( const int argc, char** argv );
+	commandLine( const int argc, char** argv, const char* extraFlag=NULL );
+
+	/**
+	 * Constructor, takes the command line from `main()`
+	 */
+	commandLine( const int argc, char** argv, const char** extraArgs );
 
 	/**
 	 * Checks to see whether the specified flag was included on the 
@@ -68,6 +74,15 @@ public:
 	int GetInt( const char* argName, int defaultValue=0 ) const; 
 
 	/**
+	 * Get unsigned integer argument.  For example if argv contained `--foo=100`, 
+	 * then `GetUnsignedInt("foo")` would return `100`
+	 *
+	 * @returns `defaultValue` if the argument couldn't be found, or if the value
+	 *          was negative (`0` by default). Otherwise, returns the parsed value.
+	 */
+	uint32_t GetUnsignedInt( const char* argName, uint32_t defaultValue=0 ) const; 
+
+	/**
 	 * Get string argument.  For example if argv contained `--foo=bar`,
 	 * then `GetString("foo")` would return `"bar"`
 	 *
@@ -96,6 +111,26 @@ public:
 	unsigned int GetPositionArgs() const;
 	
 	/**
+	 * Add an argument to the command line.
+	 */
+	void AddArg( const char* arg );
+
+	/**
+	 * Add arguments to the command line.
+	 */
+	void AddArgs( const char** args );
+
+	/**
+	 * Add a flag to the command line.
+	 */
+	void AddFlag( const char* flag );
+
+	/**
+	 * Print out the command line for reference.
+	 */
+	void Print() const;
+
+	/**
 	 * The argument count that the object was created with from main()
 	 */
 	int argc;
@@ -105,6 +140,13 @@ public:
 	 */
 	char** argv;
 };
+
+
+/**
+ * Specify a positional argument index.
+ * @ingroup util
+ */
+#define ARG_POSITION(x) x
 
 
 #endif

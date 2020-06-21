@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018, NVIDIA CORPORATION. All rights reserved.
+ * Copyright (c) 2019, NVIDIA CORPORATION. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -19,19 +19,18 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
+ 
+#ifndef __PYTHON_BINDINGS_NUMPY__
+#define __PYTHON_BINDINGS_NUMPY__
 
-#include "Mutex.h"
-
-
-// constructor
-Mutex::Mutex()
-{
-	pthread_mutex_init(&mID, NULL);
-}
+#include "PyUtils.h"
 
 
-// destructor
-Mutex::~Mutex()
-{
-	pthread_mutex_destroy(&mID);
-}
+// Register functions
+PyMethodDef* PyNumpy_RegisterFunctions();
+
+// Register types
+bool PyNumpy_RegisterTypes( PyObject* module );
+
+
+#endif
